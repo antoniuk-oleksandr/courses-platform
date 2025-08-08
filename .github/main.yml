@@ -27,6 +27,7 @@ jobs:
       DATABASE_URL: postgres://test_db:test_db@localhost:5431/test_db
       NODE_ENV: test
       JWT_SECRET: test_secret
+      MIGRATE: ${{ vars.MIGRATE || 'false' }}
 
     steps:
       - name: Checkout repository
@@ -40,7 +41,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run migrations
+      - name: Run migrations (if enabled)
+        if: ${{ env.MIGRATE == 'true' }}
         run: npx prisma migrate deploy
 
       - name: Run tests
