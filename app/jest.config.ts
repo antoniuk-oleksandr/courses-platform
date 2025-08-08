@@ -12,7 +12,6 @@ const config: Config = {
     '^@test/(.*)$': '<rootDir>/test/$1',
   },
   testEnvironment: 'node',
-
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/*.module.ts',
@@ -20,6 +19,7 @@ const config: Config = {
     '!src/main.ts',
     '!src/**/*.d.ts',
   ],
+  coverageProvider: 'v8',
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/test/'],
   coverageThreshold: {
     global: {

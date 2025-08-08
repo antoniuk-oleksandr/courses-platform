@@ -2,11 +2,11 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - "development"
+      - "develop"
       - "features/*"
   pull_request:
     branches:
-      - "development"
+      - "develop"
       - "features/*"
   workflow_dispatch:
 
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: test_db
           POSTGRES_PASSWORD: test_db
@@ -38,24 +38,27 @@ jobs:
         with:
           node-version: "24.5"
 
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
       - name: Install dependencies
-        run: npm install
+        working-directory: ./app
+        run: pnpm install
+
+      - name: Run tests
+        working-directory: ./app
+        run: pnpm run test:ci/cd
 
       - name: Run migrations (if enabled)
         if: ${{ env.MIGRATE == 'true' }}
-        run: npx prisma migrate deploy
-
-      - name: Run tests
-        run: npm run test:ci/cd
+        working-directory: ./app
+        run: DATABASE_URL=${{ secrets.DATABASE_URL }} npx prisma migrate deploy
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: antoniuk-oleksandr/courses-platform
-
-      - name: Run migrations
-        run: DATABASE_URL=${{ secrets.DATABASE_URL }} npx prisma migrate deploy
 
       - name: Trigger Render Deploy Hook
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
